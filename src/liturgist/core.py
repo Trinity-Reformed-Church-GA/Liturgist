@@ -173,7 +173,7 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
                 end_verse_index = int(multi_chapter_match_end)
 
                 verses = [
-                    f"{idx + 1}. {verse}"
+                    f"{idx + 1 + start_verse_index}. {verse}"
                     for idx, verse in enumerate(
                         chapter["verses"][start_verse_index:end_verse_index]
                     )
