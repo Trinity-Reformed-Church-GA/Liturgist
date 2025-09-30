@@ -130,7 +130,7 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
 
         if len(chapters) == 1:
             single_chapter_book_pattern = (
-                r"[1-3]?\s?[A-Za-z ]+\s(?P<start>\d+)(?:\s*-\s*(?P<end>\d+))?"
+                r"[1-3]?\s?[A-Za-z ]+\s(?:1:)?(?P<start>\d+)(?:\s*-\s*(?P<end>\d+))?"
             )
             single_chapter_match = next(
                 re.finditer(single_chapter_book_pattern, passage), None
