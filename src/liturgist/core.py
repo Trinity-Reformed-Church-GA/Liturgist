@@ -126,64 +126,42 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
         chapters = book["chapters"]
         verses = []
 
-        if len(chapters) == 1:
-            single_chapter_book_pattern = r"[1-3]?\s?[A-Za-z]+(?:\s[A-Za-z]+)*(?:\s*1:)?(?P<start>\s*\d+)?(?:\s*-\s*(?P<end>\d+))?"
-            single_chapter_match = next(
-                re.finditer(single_chapter_book_pattern, current_match.group()), None
-            )
-            single_chapter_match_start = single_chapter_match.group("start")
-            single_chapter_match_end = (
-                int(single_chapter_match.group("end"))
-                if single_chapter_match.group("end")
-                else single_chapter_match_start
-            )
+        verse_pattern = (
+            # Single chapter book refs might omit chapter segment
+            r"[1-3]?\s?[A-Za-z]+(?:\s[A-Za-z]+)*(?:\s*1:)?(?P<start>\s*\d+)?(?:\s*-\s*(?P<end>\d+))?"
+            if len(chapters) == 1
+            # Multi chapter book refs must specify the chapter
+            else r"[1-3]?\s?[A-Za-z ]+ (?P<chapter>\d+)(?::(?P<start>\d+)(?:-(?P<end>\d+))?)?"
+        )
 
-            chapter = chapters[0]
+        precise_match = next(re.finditer(verse_pattern, current_match.group()), None)
+        precise_match_start = precise_match.group("start")
+        precise_match_end = (
+            int(precise_match.group("end"))
+            if precise_match.group("end")
+            else precise_match_start
+        )
 
-            if single_chapter_match_start is not None:
-                start_verse_index = int(single_chapter_match_start) - 1
-                end_verse_index = int(single_chapter_match_end)
+        chapter = (
+            chapters[0]
+            if len(chapters) == 1
+            else chapters[int(precise_match.group("chapter")) - 1]
+        )
 
-                verses = [
-                    f"{idx + 1 + start_verse_index}. {verse}"
-                    for idx, verse in enumerate(
-                        chapter["verses"][start_verse_index:end_verse_index]
-                    )
-                ]
-            else:
-                verses = [
-                    f"{idx + 1}. {verse}" for idx, verse in enumerate(chapter["verses"])
-                ]
+        if precise_match_start is not None:
+            start_verse_index = int(precise_match_start) - 1
+            end_verse_index = int(precise_match_end)
+
+            verses = [
+                f"{idx + 1 + start_verse_index}. {verse}"
+                for idx, verse in enumerate(
+                    chapter["verses"][start_verse_index:end_verse_index]
+                )
+            ]
         else:
-            multi_chapter_book_pattern = r"[1-3]?\s?[A-Za-z ]+ (?P<chapter>\d+)(?::(?P<start>\d+)(?:-(?P<end>\d+))?)?"
-            multi_chapter_match = next(
-                re.finditer(multi_chapter_book_pattern, current_match.group()), None
-            )
-
-            chapter_index = int(multi_chapter_match.group("chapter"))
-            chapter = book["chapters"][chapter_index - 1]
-
-            multi_chapter_match_start = multi_chapter_match.group("start")
-            multi_chapter_match_end = (
-                multi_chapter_match.group("end")
-                if multi_chapter_match.group("end")
-                else multi_chapter_match_start
-            )
-
-            if multi_chapter_match_start is not None:
-                start_verse_index = int(multi_chapter_match_start) - 1
-                end_verse_index = int(multi_chapter_match_end)
-
-                verses = [
-                    f"{idx + 1 + start_verse_index}. {verse}"
-                    for idx, verse in enumerate(
-                        chapter["verses"][start_verse_index:end_verse_index]
-                    )
-                ]
-            else:
-                verses = [
-                    f"{idx + 1}. {verse}" for idx, verse in enumerate(chapter["verses"])
-                ]
+            verses = [
+                f"{idx + 1}. {verse}" for idx, verse in enumerate(chapter["verses"])
+            ]
 
         next_match = next(match_iter, None)
 
