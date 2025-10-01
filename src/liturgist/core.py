@@ -110,14 +110,11 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
     result = ""
 
     pattern = r"(?P<book>[1-3]?\s?[A-Za-z ]+)\s\d+(?:\s*:\s*\d+(?:\s*-\s*\d+)?|(?:\s*-\s*\d+))?"
-    matches = list(re.finditer(pattern, passage))
-    passage_count = len(matches)
+    match_iter = re.finditer(pattern, passage)
+    current_match = next(match_iter, None)
 
-    passage_index = 0
-
-    for match in matches:
-        passage_index += 1
-        match_book = match.group("book")
+    while current_match is not None:
+        match_book = current_match.group("book")
         book = next(
             (book for book in data["books"] if book["name"] == match_book), None
         )
@@ -133,7 +130,7 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
                 r"[1-3]?\s?[A-Za-z ]+\s(?:1:)?(?P<start>\d+)(?:\s*-\s*(?P<end>\d+))?"
             )
             single_chapter_match = next(
-                re.finditer(single_chapter_book_pattern, match.group(0)), None
+                re.finditer(single_chapter_book_pattern, current_match.group(0)), None
             )
             single_chapter_match_start = int(single_chapter_match.group("start"))
             single_chapter_match_end = (
@@ -155,7 +152,7 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
         else:
             multi_chapter_book_pattern = r"[1-3]?\s?[A-Za-z ]+ (?P<chapter>\d+)(?::(?P<start>\d+)(?:-(?P<end>\d+))?)?"
             multi_chapter_match = next(
-                re.finditer(multi_chapter_book_pattern, match.group(0)), None
+                re.finditer(multi_chapter_book_pattern, current_match.group(0)), None
             )
 
             chapter_index = int(multi_chapter_match.group("chapter"))
@@ -183,10 +180,14 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
                     f"{idx + 1}. {verse}" for idx, verse in enumerate(chapter["verses"])
                 ]
 
-        if passage_count == passage_index:
+        next_match = next(match_iter, None)
+
+        if next_match is None:
             result = result + " ".join(verses)
         else:
             result = result + " ".join(verses) + " (...) "
+
+        current_match = next_match
 
     return result
 
