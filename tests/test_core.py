@@ -92,7 +92,7 @@ def test_chapter_verse_range_reference_found():
 
 
 def test_non_contiguous_references_found():
-    """Test reference of the form BOOK CHAPTER:START-END."""
+    """Test multiple references are matched."""
     json_path = Path("samples/kjv.json")
     bible_text = json_path.read_text(encoding="utf-8")
     bible_data = json.loads(bible_text)
@@ -154,7 +154,7 @@ def test_chapterless_range_reference_found():
 
 
 def test_chapterless_book_reference_found():
-    """Test reference of the form BOOK VERSE_START-VERSE_END."""
+    """Test single chapter book reference of the form BOOK."""
     json_path = Path("samples/kjv.json")
     bible_text = json_path.read_text(encoding="utf-8")
     bible_data = json.loads(bible_text)

@@ -102,7 +102,7 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
 
     Args:
         data: Dictionary containing bible data with books/chapters/verses
-        passage: Scripture reference (e.g., "John 3:16" or "Romans 8:28-30")
+        passage: Scripture reference (e.g. "Jude 3", "John 3:16", or "Romans 8:28-30")
 
     Returns:
         Formatted scripture text with verse numbers
@@ -114,7 +114,6 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
     current_match = next(match_iter, None)
 
     while current_match is not None:
-        print(current_match.group())
         match_book = current_match.group("book")
         book = next(
             (book for book in data["books"] if book["name"] == match_book), None
