@@ -75,7 +75,6 @@ def test_get_scripture_text():
     bible_data = {"books": []}
 
     result = get_scripture_text(bible_data, "John 3:16")
-    # With no books, should return empty string
     assert result == ""
 
 
@@ -137,7 +136,7 @@ def test_chapterless_reference_found():
     result = get_scripture_text(bible_data, "Jude 3")
     assert (
         result
-        == "3. For there are certain men crept in unawares, who were before of old ordained to this condemnation, ungodly men, turning the grace of our God into lasciviousness, and denying the only Lord God, and our Lord Jesus Christ."
+        == "3. Beloved, when I gave all diligence to write unto you of the common salvation, it was needful for me to write unto you, and exhort [you] that ye should earnestly contend for the faith which was once delivered unto the saints."
     )
 
 
@@ -150,8 +149,18 @@ def test_chapterless_range_reference_found():
     result = get_scripture_text(bible_data, "Jude 3-4")
     assert (
         result
-        == "3. For there are certain men crept in unawares, who were before of old ordained to this condemnation, ungodly men, turning the grace of our God into lasciviousness, and denying the only Lord God, and our Lord Jesus Christ. 4. I will therefore put you in remembrance, though ye once knew this, how that the Lord, having saved the people out of the land of Egypt, afterward destroyed them that believed not."
+        == "3. Beloved, when I gave all diligence to write unto you of the common salvation, it was needful for me to write unto you, and exhort [you] that ye should earnestly contend for the faith which was once delivered unto the saints. 4. For there are certain men crept in unawares, who were before of old ordained to this condemnation, ungodly men, turning the grace of our God into lasciviousness, and denying the only Lord God, and our Lord Jesus Christ."
     )
+
+
+def test_chapterless_book_reference_found():
+    """Test reference of the form BOOK VERSE_START-VERSE_END."""
+    json_path = Path("samples/kjv.json")
+    bible_text = json_path.read_text(encoding="utf-8")
+    bible_data = json.loads(bible_text)
+
+    result = get_scripture_text(bible_data, "Jude")
+    assert len(result) > 0
 
 
 def test_process_schedule_data():

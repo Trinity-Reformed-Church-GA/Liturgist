@@ -109,11 +109,12 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
     """
     result = ""
 
-    pattern = r"(?P<book>[1-3]?\s?[A-Za-z ]+)\s\d+(?:\s*:\s*\d+(?:\s*-\s*\d+)?|(?:\s*-\s*\d+))?"
+    pattern = r"(?P<book>(?:[1-3]\s)?[A-Za-z]+(?:\s[A-Za-z]+)*)\s*\d*(?:\s*:\s*\d+(?:\s*-\s*\d+)?|(?:\s*-\s*\d+))?"
     match_iter = re.finditer(pattern, passage)
     current_match = next(match_iter, None)
 
     while current_match is not None:
+        print(current_match.group())
         match_book = current_match.group("book")
         book = next(
             (book for book in data["books"] if book["name"] == match_book), None
@@ -126,13 +127,11 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
         verses = []
 
         if len(chapters) == 1:
-            single_chapter_book_pattern = (
-                r"[1-3]?\s?[A-Za-z ]+\s(?:1:)?(?P<start>\d+)(?:\s*-\s*(?P<end>\d+))?"
-            )
+            single_chapter_book_pattern = r"[1-3]?\s?[A-Za-z]+(?:\s[A-Za-z]+)*(?:\s*1:)?(?P<start>\s*\d+)?(?:\s*-\s*(?P<end>\d+))?"
             single_chapter_match = next(
-                re.finditer(single_chapter_book_pattern, current_match.group(0)), None
+                re.finditer(single_chapter_book_pattern, current_match.group()), None
             )
-            single_chapter_match_start = int(single_chapter_match.group("start"))
+            single_chapter_match_start = single_chapter_match.group("start")
             single_chapter_match_end = (
                 int(single_chapter_match.group("end"))
                 if single_chapter_match.group("end")
@@ -141,18 +140,24 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
 
             chapter = chapters[0]
 
-            verses = [
-                f"{idx + 1}. {verse}"
-                for idx, verse in enumerate(
-                    chapter["verses"][
-                        single_chapter_match_start:single_chapter_match_end
-                    ]
-                )
-            ]
+            if single_chapter_match_start is not None:
+                start_verse_index = int(single_chapter_match_start) - 1
+                end_verse_index = int(single_chapter_match_end)
+
+                verses = [
+                    f"{idx + 1 + start_verse_index}. {verse}"
+                    for idx, verse in enumerate(
+                        chapter["verses"][start_verse_index:end_verse_index]
+                    )
+                ]
+            else:
+                verses = [
+                    f"{idx + 1}. {verse}" for idx, verse in enumerate(chapter["verses"])
+                ]
         else:
             multi_chapter_book_pattern = r"[1-3]?\s?[A-Za-z ]+ (?P<chapter>\d+)(?::(?P<start>\d+)(?:-(?P<end>\d+))?)?"
             multi_chapter_match = next(
-                re.finditer(multi_chapter_book_pattern, current_match.group(0)), None
+                re.finditer(multi_chapter_book_pattern, current_match.group()), None
             )
 
             chapter_index = int(multi_chapter_match.group("chapter"))
