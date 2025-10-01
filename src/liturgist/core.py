@@ -133,7 +133,7 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
                 r"[1-3]?\s?[A-Za-z ]+\s(?:1:)?(?P<start>\d+)(?:\s*-\s*(?P<end>\d+))?"
             )
             single_chapter_match = next(
-                re.finditer(single_chapter_book_pattern, passage), None
+                re.finditer(single_chapter_book_pattern, match.group(0)), None
             )
             single_chapter_match_start = int(single_chapter_match.group("start"))
             single_chapter_match_end = (
@@ -155,7 +155,7 @@ def get_scripture_text(data: dict[str, Any], passage: str) -> str:
         else:
             multi_chapter_book_pattern = r"[1-3]?\s?[A-Za-z ]+ (?P<chapter>\d+)(?::(?P<start>\d+)(?:-(?P<end>\d+))?)?"
             multi_chapter_match = next(
-                re.finditer(multi_chapter_book_pattern, passage), None
+                re.finditer(multi_chapter_book_pattern, match.group(0)), None
             )
 
             chapter_index = int(multi_chapter_match.group("chapter"))
