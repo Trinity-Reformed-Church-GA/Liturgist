@@ -1,6 +1,7 @@
 """Tests for liturgist.core module."""
 
 import tempfile
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -71,12 +72,86 @@ def test_load_template_from_file():
 
 def test_get_scripture_text():
     """Test scripture text extraction."""
-    # This is a basic test - the function is complex and would need more extensive testing
     bible_data = {"books": []}
 
     result = get_scripture_text(bible_data, "John 3:16")
     # With no books, should return empty string
     assert result == ""
+
+
+def test_chapter_verse_range_reference_found():
+    """Test reference of the form BOOK CHAPTER:START-END."""
+    json_path = Path("samples/kjv.json")
+    bible_text = json_path.read_text(encoding="utf-8")
+    bible_data = json.loads(bible_text)
+
+    result = get_scripture_text(bible_data, "John 3:16-17")
+    assert (
+        result
+        == "16. ‹For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.› 17. ‹For God sent not his Son into the world to condemn the world; but that the world through him might be saved.›"
+    )
+
+
+def test_non_contiguous_references_found():
+    """Test reference of the form BOOK CHAPTER:START-END."""
+    json_path = Path("samples/kjv.json")
+    bible_text = json_path.read_text(encoding="utf-8")
+    bible_data = json.loads(bible_text)
+
+    result = get_scripture_text(bible_data, "John 3:16-17 John 4:1")
+    assert (
+        result
+        == "16. ‹For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.› 17. ‹For God sent not his Son into the world to condemn the world; but that the world through him might be saved.› (...) 1. When therefore the Lord knew how the Pharisees had heard that Jesus made and baptized more disciples than John,"
+    )
+
+
+def test_chapter_verse_reference_found():
+    """Test full reference of the form BOOK CHAPTER:START."""
+    json_path = Path("samples/kjv.json")
+    bible_text = json_path.read_text(encoding="utf-8")
+    bible_data = json.loads(bible_text)
+
+    result = get_scripture_text(bible_data, "John 3:16")
+    assert (
+        result
+        == "16. ‹For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.›"
+    )
+
+
+def test_chapter_reference_found():
+    """Test reference of the form BOOK CHAPTER."""
+    json_path = Path("samples/kjv.json")
+    bible_text = json_path.read_text(encoding="utf-8")
+    bible_data = json.loads(bible_text)
+
+    result = get_scripture_text(bible_data, "John 3")
+    assert len(result) > 0
+
+
+def test_chapterless_reference_found():
+    """Test reference of the form BOOK VERSE."""
+    json_path = Path("samples/kjv.json")
+    bible_text = json_path.read_text(encoding="utf-8")
+    bible_data = json.loads(bible_text)
+
+    result = get_scripture_text(bible_data, "Jude 3")
+    assert (
+        result
+        == "3. For there are certain men crept in unawares, who were before of old ordained to this condemnation, ungodly men, turning the grace of our God into lasciviousness, and denying the only Lord God, and our Lord Jesus Christ."
+    )
+
+
+def test_chapterless_range_reference_found():
+    """Test reference of the form BOOK VERSE_START-VERSE_END."""
+    json_path = Path("samples/kjv.json")
+    bible_text = json_path.read_text(encoding="utf-8")
+    bible_data = json.loads(bible_text)
+
+    result = get_scripture_text(bible_data, "Jude 3-4")
+    assert (
+        result
+        == "3. For there are certain men crept in unawares, who were before of old ordained to this condemnation, ungodly men, turning the grace of our God into lasciviousness, and denying the only Lord God, and our Lord Jesus Christ. 4. I will therefore put you in remembrance, though ye once knew this, how that the Lord, having saved the people out of the land of Egypt, afterward destroyed them that believed not."
+    )
 
 
 def test_process_schedule_data():
