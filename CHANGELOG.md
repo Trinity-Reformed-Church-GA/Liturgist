@@ -11,6 +11,7 @@
 ### Removed
 
 ### Fixed
+- Single chapter book references (e.g. `Jude 1-3`) are correctly parsed
 
 ### Security
 
